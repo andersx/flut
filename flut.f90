@@ -31,7 +31,7 @@ contains
     do i = 1, steps
         lut(i) = exp(lut_dmin + (i - 1) * lut_delta)
 
-        write (*,*) i, dmin + (i - 1) * lut_delta, lut(i)
+        ! write (*,*) i, dmin + (i - 1) * lut_delta, lut(i)
     enddo
     !$OMP END PARALLEL DO
 
@@ -52,11 +52,7 @@ contains
         x_lut = (x - lut_dmin) * lut_inv_delta
         x_floor = floor(x_lut) + 1
 
-        write(*,*) "lol1", x_floor, lut(x_floor)
-        write(*,*) "lol2", x_floor+1, lut(x_floor+1)
-
         e = lut(x_floor) - (lut(x_floor + 1) - lut(x_floor)) * (x_lut - x_floor)
-        print *, x_lut - x_floor
 
     end function exp_lut
 
@@ -76,18 +72,27 @@ program example
 
     implicit none
 
+    double precision, parameter :: dmin = -10.0d0
     double precision, parameter :: dmax = 0.0d0
-    double precision, parameter :: dmin = 2.0d0
-    integer, parameter :: steps = 10
+    integer, parameter :: steps = 1e8
 
     double precision :: x0, e
 
     call initialize_lut(dmin, dmax, steps)
 
-    x0 = 1.115d0
+    call random_seed()
+
+    call random_number(x0)
+
+    x0 = x0 * (dmax - dmin) + dmin
+
     e = exp_lut(x0)
     
-    write(*,*) exp(x0), e, exp(x0) / e
+    write(*,*) "x0          =", x0
+    write(*,*) "EXP(x0)     =", exp(x0), e
+    write(*,*) "EXP_LUT(x0) =", e
+    write(*,*) "DIFF        =", exp(x0) - e
+    write(*,*) "RATIO       =", exp(x0) / e
 
     call free_lut()
 
